@@ -2,13 +2,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 import os
 from suds.client import Client
-from zeep import Client as zeep_client
+from suds import WebFault
 
 load_dotenv()
 
 token = os.getenv('TOKEN_SEI')
 url = os.getenv('URL_SEI')
-client = Client(url)
+client = Client(url, faults=False)
 app = FastAPI()
 
 @app.get('/')
@@ -22,8 +22,8 @@ def lista_marcadores():
         'IdentificacaoServico': token,
         'IdUnidade': '110001002',
     }
-    response = client.service.listarMarcadoresUnidade(**dict_call)
-    # import ipdb;ipdb.set_trace(context=10)
-    return response
-
-
+    try:
+        response = client.service.listarMarcadoresUnidade(**dict_call)
+        return response
+    except WebFault as error:
+        return error
